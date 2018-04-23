@@ -1,0 +1,116 @@
+#include <stdio.h>
+#include <string.h>
+#include <conio.h>
+#include <stdlib.h>
+#define bool int        //这里用define定义了布尔类型
+#define true 1          //避免一些编译器如vs2010没有该头文件无法使用的情况发生
+#define false 0         //有些编译器如code:blocks可以直接使用头文件<include stdbool.h>
+FILE *fp;               //文件指针，不多说
+bool judge=true;
+
+
+先定义一个结构体Users，然后新建结构体pe用来存放用户名和密码。
+typedef struct
+{
+    char user[20];
+    char code[20];
+}Users;
+Users pe;
+
+编写注册模块
+/*注册模块*/
+void zhuce()
+{
+    char temp[20],txt[100],cha;        //定义两个数组，一个存放键盘输入的用户名和密码一个存放用户手册
+        printf("\t\t\t\t用户注册");
+        printf("\n\t\t用户名:");
+        scanf("%s",pe.user);
+        fp=fopen(pe.user,"r");
+        /*判断用户名是否重复*/
+        if(fp!=NULL) 
+        {
+           printf("\n\t该用户名已存在");
+           fclose(fp);
+           printf("\n\t继续注册?(Y/N)");
+           if(getch()=='Y') return zhuce();
+           else return denglu();
+        }
+        /*确认两次密码输入是否一致*/
+        printf("\n\t\t密  码:");
+        scanf("%s",pe.code);
+        printf("\n\t\t确认密码:");
+        scanf("%s",temp);
+        if(strcmp(pe.code,temp)!=0)
+        printf("\n\t\t两次密码不一致,请重新输入");
+    }while(strcmp(pe.code,temp)!=0);
+    /*用户名密码无误，写入文档储存用户信息*/
+    fp=fopen(pe.user,"w");
+    if(fp==NULL)
+       {
+          printf("\n\t注册失败\n");
+          exit(0);
+       }
+    else 
+    {
+        system("cls");
+        printf("\n\t注册成功");
+        write();               //用户信息写入函数，底下给出
+        judge = false;
+        denglu();             //这里跳转到登陆模块
+    }
+}
+/*写入用户信息*/
+void write()
+{
+    if(fwrite(&pe,sizeof(User),1,fp)!=1)
+    {
+        printf("\n\t\t写入文件错误");
+        exit(0);                     //写入错误则退出程序
+    }
+}
+
+登陆模块了，这里的关键就是读取之前存储好的用户信息以及用户的资料
+void denglu()
+{
+    char u[20],c[20],temp[20];      //定义两个数组，存放键盘输入的用户名和密码
+    printf("\n\t\t\t\t用户登录");
+    printf("\n\t\t用户名:");
+    scanf("%s",u);
+    /*判断用户名是否存在*/
+    fp=fopen(u,"r+");
+    temp[0]='0';
+    if(fp==NULL)
+    {
+        printf("\n\t\t用户不存在,请注册");
+        printf("\n\t\t1.注册   2.重新登陆");
+        temp[0]=getch();
+        if(temp[0]=='1')
+        {
+            system("cls");
+            zhuce();
+        }
+        else return denglu();
+    }
+    /*验证密码是否正确*/
+    do
+    {
+        if(judge==true) fread(&pe,sizeof(Users),1,fp); //读取用户信息，即用户名和密码
+        printf("\t\t密  码:");
+        scanf("%s",c);
+        if(strcmp(pe.code,c)!=0)                      //对比输入的密码和读取的密码
+        {
+            printf("\n\t\t密码错误(1.退出 2.重新输入)");
+            temp[0]=getch();
+            printf("\n");
+            if(temp[0]=='1')
+            {
+                fclose(fp);                           //关闭文件防止错误操作
+                return main();
+            }
+        }
+    }while(temp[0]=='2');
+    /*readfile();   
+该函数读取用户自己的资料，需要注意这里用户信息和其资料存储在一个文件中，读取是应适当使用rewind,ftell和fseek跳过一个User大小的空间读取的才是用户的资料*/
+    getch();
+    //这里可以设置跳转到操作界面
+}
